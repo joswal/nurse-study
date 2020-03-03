@@ -1,5 +1,4 @@
 default.json
 development.json
-config/
 node_modules/
 package-lock.json
