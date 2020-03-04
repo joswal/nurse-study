@@ -6,7 +6,7 @@ const session = require("express-session");
 const SessionStore = require("connect-mongodb-session")(session);
 
 //get all the db values from the app config
-let dbUrl =  process.env.nurse-study_db || config.get("db");
+let dbUrl =  process.env.MONGOGB_URI || config.get("db");
 //create store for session
 const store = new SessionStore({ uri: dbUrl, collection: "sessions"});
 //set session config
