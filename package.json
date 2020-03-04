@@ -1,7 +1,7 @@
 {
-  "name": "simple-nursing",
+  "name": "nurse-study",
   "version": "1.0.0",
-  "description": "simple nursing app",
+  "description": "nurse study app",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
