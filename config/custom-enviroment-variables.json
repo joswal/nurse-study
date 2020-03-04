@@ -1,4 +1,4 @@
 {
-    "db": "",
-    "secret": "joswal"
+    "db": "nurse-study_db",
+    "secret": "nurse-study_secret"
 }
