@@ -17,7 +17,7 @@ router.post("/login", forwardAuthenticated, async (req, res) => {
     let user = await User.findOne({ email });
     if (!user) return res.send({
      code: 400,
-      message: "Invalid email or password",
+      message: "user does not exist, please register",
       data: {}
     });
   
