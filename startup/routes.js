@@ -7,10 +7,11 @@ module.exports = function (app) {
 
     // const index = require("../routes/index");
     // const admin = require("../routes/admin");
-    // const user = require("../routes/user");
     const auth = require("../routes/auth");
+    const users = require("../routes/users");
 
     app.use("/auth", auth);
+    app.use("/users", users);
     app.get("*", (req, res)=>{
         res.redirect('/')
     });
