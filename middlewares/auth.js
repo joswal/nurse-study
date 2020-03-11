@@ -1,68 +1,67 @@
 const { User } = require("../models/users");
+const jwt = require('jsonwebtoken');
+const config = require('config');
 
 module.exports = {
   forwardAuthenticated: (req, res, next) => {
-    if (!req.session.user) {
+    const token = req.header('x-auth-token');
+    if (!token) {
       return next()
-    }
-    let previous = req.originalUrl;
-    if (previous != "/login" && previous != "/register" && previous != undefined && previous.length < 20) {
-      res.redirect(previous);
-    } else {
-      res.redirect("/");
     }
   },
   ensureAuthenticated: (req, res, next) => {
-    if (req.session.user) {
-      return next()
-    }
-    req.session.redirectUrl = req.originalUrl;
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).send('Access denied. No token provided.');
 
-    res.redirect('/login');
+    try {
+      const decoded = jwt.verify(token, process.env.secret || config.get('secret'));
+      req.user = decoded;
+      next();
+    }
+    catch (ex) {
+      res.status(400).send('Invalid token.');
+    }
   },
   ensurePostAuthenticated: (req, res, next) => {
-    console.log(req.body);
-    if (req.session.user) {
-      return next()
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).send('Access denied. No token provided.');
+
+    try {
+      const decoded = jwt.verify(token, process.env.secret || config.get('secret'));
+      req.user = decoded;
+      next();
     }
-    res.send({
-      error: 401,
-      message: "please login first",
-      data: {}
-    });
+    catch (ex) {
+      res.status(400).send('Invalid token.');
+    }
   },
   ensureAuthorized: async (req, res, next) => {
-    if (!req.session.user) {
-      return res.redirect('/login');
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).send('Access denied. No token provided.');
+
+    try {
+      const decoded = jwt.verify(token, process.env.secret || config.get('secret'));
+      req.user = decoded;
+      if (!req.user.isAdmin) return res.status(403).send('Access denied,Unauthorized to perform this action');
+      next();
     }
-    let admin_id = req.session.user;
-    let admin = await User.findOne({user_id: admin_id});
-    let {isAdmin} = admin;
-    if (isAdmin) { //Admin.
-      next();
-    } else if (Admins.includes(admin.email.toLowerCase())){
-      await User.findOneAndUpdate({user_id:admin_id},{isAdmin:true}); //Make Admin
-      next();
-    } else res.redirect('/user'); // not Admin
+    catch (ex) {
+      res.status(400).send('Invalid token.');
+    }
+
   },
   ensurePostAuthorized: async (req, res, next) => {
-    console.log(req.body);
-    if (!req.session.user) {
-      return res.send({
-        error: 401,
-        message: "please login first",
-        data: {}
-      });
-    }
-    let admin_id = req.session.user;
-    let admin = await User.findOne({user_id: admin_id});
-    let {isAdmin} = admin;
-    if (isAdmin) { //Admin.
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).send('Access denied. No token provided.');
+
+    try {
+      const decoded = jwt.verify(token, process.env.secret || config.get('secret'));
+      req.user = decoded;
+      if (!req.user.isAdmin) return res.status(403).send('Access denied,Unauthorized to perform this action');
       next();
-    }else  res.send({ //Not an admin.
-      error: 401,
-      message: "Unauthorized to perform this action",
-      data: {}
-    });
-  },
+    }
+    catch (ex) {
+      res.status(400).send('Invalid token.');
+    }
+  }
 }

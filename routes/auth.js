@@ -28,17 +28,16 @@ router.post("/login", forwardAuthenticated, async (req, res) => {
       data: {}
     });
 
-    req.session.user = user.user_id;
+    const token = user.generateAuthToken();
     res.send({
      code: 200,
       message: "Successfully Logged in",
-      data: { user }
+      token: token
     });
   } catch (error) {
     res.send({
      code: 400,
-      message: "An error occurred",
-      data: { user }
+      message: "An error occurred"
     });
   }
 });
