@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-const articleSchema = new mongoose.Schema({
-    created_by: {
+const mediaSchema = new mongoose.Schema({
+    added_by: {
         type: String,
         required: true,
     },
@@ -14,20 +14,20 @@ const articleSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    category: {
+    type: {
         type: String,
         required: true,
     },
-    content: {
+    link: {
         type: String,
         required: true,
     },
-    created_on: {
+    added_on: {
         type: Date,
         default: Date.now,
     }
 });
 
-const Article = mongoose.model('Article', articleSchema);
+const Media = mongoose.model('Media', mediaSchema);
 
-exports.Article = Article;
+exports.Media = Media;

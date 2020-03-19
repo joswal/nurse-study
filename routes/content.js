@@ -1,21 +1,73 @@
-const { ensureAuthenticated, ensurePostAuthenticated, forwardAuthenticated } = require("../middlewares/auth");
+const { ensureAuthenticated, ensurePostAuthenticated, ensurePostAuthorized } = require("../middlewares/auth");
 const { Article } = require("../models/articles");
+const { Section } = require("../models/sections");
 const { Result } = require("../models/results");
 const { Topic } = require("../models/topics");
 const { Quiz } = require("../models/quizzes");
+const { Media } = require("../models/media");
 const { User } = require("../models/users");
 const express = require('express');
 const router = express.Router();
 
 router.get('/topics', async (req, res) => {
-    const topic = await Topic.find();
+    const topics = await Topic.find();
     res.send({
         code: 200,
-        data: topic
+        data: topics
     });
 });
 
-router.post("/topic", ensurePostAuthenticated, async (req, res) => {
+router.get('/sections', async (req, res) => {
+    const sections = await Section.find();
+    res.send({
+        code: 200,
+        data: sections
+    });
+});
+
+router.get('/section_articles/:id', ensureAuthenticated, async (req, res) => {
+    const articles = await Article.find({ section_id: req.params.id });
+
+    if (!articles) return res.send({
+        code: 400,
+        message: "invalid section, please put a valid section id to get articles"
+    });
+
+    res.send({
+        code: 200,
+        data: articles
+    });
+});
+
+router.get('/section_media/:id', ensureAuthenticated, async (req, res) => {
+    const media = await Media.find({ section_id: req.params.id });
+
+    if (!media) return res.send({
+        code: 400,
+        message: "invalid section, please put a valid section id to get media"
+    });
+
+    res.send({
+        code: 200,
+        data: media
+    });
+});
+
+router.get('/section_quizzes/:id', ensureAuthenticated, async (req, res) => {
+    const quizzes = await Quiz.find({ section_id: req.params.id });
+
+    if (!quizzes) return res.send({
+        code: 400,
+        message: "invalid section, please put a valid section id to get quizzes"
+    });
+
+    res.send({
+        code: 200,
+        data: quizzes
+    });
+});
+
+router.post("/topic", ensurePostAuthorized, async (req, res) => {
     try {
         let { title } = req.body;
         if (!title) return res.send({
@@ -33,7 +85,7 @@ router.post("/topic", ensurePostAuthenticated, async (req, res) => {
 
         const { user_id } = await User.findById(req.user._id);
         topic = new Topic({
-            user_id,
+            created_by: user_id,
             title,
         });
 
@@ -53,10 +105,48 @@ router.post("/topic", ensurePostAuthenticated, async (req, res) => {
     }
 });
 
-router.post("/article", ensurePostAuthenticated, async (req, res) => {
+router.post("/section", ensurePostAuthorized, async (req, res) => {
     try {
-        let { title, topic, category } = req.body;
-        if (!title || !topic || !category) return res.send({
+        let { title } = req.body;
+        if (!title) return res.send({
+            code: 400,
+            message: "please enter section title",
+            data: {}
+        });
+
+        let section = await Section.findOne({ title });
+        if (section) return res.send({
+            code: 400,
+            message: "section already existing, please create new",
+            data: {}
+        });
+
+        const { user_id } = await User.findById(req.user._id);
+        section = new Section({
+            created_by: user_id,
+            title,
+        });
+
+        let new_section = await section.save();
+
+        res.send({
+            code: 200,
+            message: "Successfully created section",
+            data: { new_section }
+        });
+
+    } catch (error) {
+        res.send({
+            code: 400,
+            message: "An error occurred"
+        });
+    }
+});
+
+router.post("/article", ensurePostAuthorized, async (req, res) => {
+    try {
+        let { title, section_id, category, content } = req.body;
+        if (!title || !section_id || !category || !content) return res.send({
             code: 400,
             message: "please enter all details",
             data: {}
@@ -71,10 +161,11 @@ router.post("/article", ensurePostAuthenticated, async (req, res) => {
 
         const { user_id } = await User.findById(req.user._id);
         article = new Article({
-            user_id,
+            created_by: user_id,
             title,
-            topic,
-            category
+            section_id,
+            category,
+            content
         });
 
         let new_article = await article.save();
@@ -88,12 +179,53 @@ router.post("/article", ensurePostAuthenticated, async (req, res) => {
     } catch (error) {
         res.send({
             code: 400,
-            message: "An error occurred"
+            message: "An error occurred,couldnt create article"
         });
     }
 });
 
-router.post("/quiz", ensurePostAuthenticated, async (req, res) => {
+router.post("/media", ensurePostAuthorized, async (req, res) => {
+    try {
+        let { title, section_id, type, link } = req.body;
+        if (!title || !section_id || !type || !link) return res.send({
+            code: 400,
+            message: "please enter all details",
+            data: {}
+        });
+
+        let media = await Media.findOne({ $or: [{ title }, { link }] });
+        if (media) return res.send({
+            code: 400,
+            message: "media already existing, please create new",
+            data: {}
+        });
+
+        const { user_id } = await User.findById(req.user._id);
+        media = new Media({
+            created_by: user_id,
+            title,
+            section_id,
+            category,
+            content
+        });
+
+        let new_media = await media.save();
+
+        res.send({
+            code: 200,
+            message: "Successfully created media",
+            data: { new_media }
+        });
+
+    } catch (error) {
+        res.send({
+            code: 400,
+            message: "An error occurred, couldnt create media"
+        });
+    }
+});
+
+router.post("/quiz", ensurePostAuthorized, async (req, res) => {
     try {
         let { title, topic, options } = req.body;
         if (!title || !topic || !options) return res.send({
@@ -111,7 +243,7 @@ router.post("/quiz", ensurePostAuthenticated, async (req, res) => {
 
         const { user_id } = await User.findById(req.user._id);
         quiz = new Quiz({
-            user_id,
+            created_by: user_id,
             title,
             topic,
             options
@@ -135,26 +267,33 @@ router.post("/quiz", ensurePostAuthenticated, async (req, res) => {
 
 router.post("/result", ensurePostAuthenticated, async (req, res) => {
     try {
-        let { quiz, topic, score } = req.body;
-        if (!title || !topic || !options) return res.send({
+        let { quiz_id, score } = req.body;
+        if (!quiz_id || !topic || !score) return res.send({
             code: 400,
             message: "please enter all details",
             data: {}
         });
 
         const { user_id } = await User.findById(req.user._id);
-        const quizTitle = await Quiz.findOne({title: quiz});
-        if (!quizTitle) return res.send({
+        const quiz = await Quiz.findById(quiz_id);
+        if (!quiz) return res.send({
             code: 400,
-            message: "invalid quiz title, please enter correct quiz",
+            message: "invalid quiz , please pick correct quiz",
             data: {}
         });
 
-        let result = new Result({
-            user_id,
-            quiz: quizTitle,
-            score,
-        });
+        let freshscore = { score, Date: Date.now().toLocaleString() }
+        let result = await Result.findOne({ $and: [{ user_id }, { quiz_id }] });
+        if (result) {
+            let scores = result.scores;
+            scores.push(freshscore);
+        } else {
+            result = new Result({
+                user_id,
+                quiz_id,
+                scores: [freshscore]
+            });
+        }
 
         let new_result = await result.save();
 

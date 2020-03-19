@@ -9,13 +9,9 @@ const resultSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    section_id: {
-        type: String,
+    scores: {
+        type: Array,
         required: true
-    },
-    score: {
-        type: String,
-        required: true,
     },
     created_on: {
         type: Date,

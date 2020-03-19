@@ -8,5 +8,10 @@ router.get('/me', ensureAuthenticated, async (req, res) => {
   res.send(user);
 });
 
+router.get('/', ensureAuthorized, async (req, res) => {
+  const user = await User.find({}).select('-password');
+  res.send(user);
+});
+
 
 module.exports = router;
