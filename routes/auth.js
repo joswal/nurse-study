@@ -70,8 +70,7 @@ router.post("/register", async (req, res) => {
     let new_user = await user.save();
     res.send({
       code: 200,
-      message: "user registered successfully,proceed to login now",
-      data: { new_user }
+      message: "user registered successfully,proceed to login now"
     });
   } catch (error) {
     res.send({

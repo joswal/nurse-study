@@ -19,7 +19,7 @@ const questionSchema = new mongoose.Schema({
         default: {},
         required: true,
     },
-    correctoption:{
+    correct_option:{
         type: String,
         required: true
     },
