@@ -113,14 +113,14 @@ router.post("/topic", ensurePostAuthorized, async (req, res) => {
 
 router.post("/section", ensurePostAuthorized, async (req, res) => {
     try {
-        let { title } = req.body;
-        if (!title) return res.send({
+        let { title, description, image_link } = req.body;
+        if (!title || !description || !image_link) return res.send({
             code: 400,
-            message: "please enter section title",
+            message: "please enter all details",
             data: {}
         });
 
-        let section = await Section.findOne({ title });
+        let section = await Section.findOne({ $or: [{ title }, { image_link }, { description }] });
         if (section) return res.send({
             code: 400,
             message: "section already existing, please create new",
@@ -131,6 +131,8 @@ router.post("/section", ensurePostAuthorized, async (req, res) => {
         section = new Section({
             created_by: user_id,
             title,
+            description,
+            image_link
         });
 
         let new_section = await section.save();

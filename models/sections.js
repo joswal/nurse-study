@@ -10,6 +10,16 @@ const sectionSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    desciption: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    image_link: {
+        type: String,
+        required: true,
+        unique: true
+    },
     created_on: {
         type: Date,
         default: Date.now,
