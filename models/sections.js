@@ -10,7 +10,7 @@ const sectionSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    desciption: {
+    description: {
         type: String,
         required: true,
         unique: true

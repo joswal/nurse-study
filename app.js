@@ -18,6 +18,6 @@ app.use(cors())
 
 require("./startup/routes")(app);
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 console.log({ 'environment': app.settings.env });
 app.listen(port, () => console.log(`listening on port ${port}`));
