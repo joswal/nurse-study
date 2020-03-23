@@ -144,7 +144,9 @@ router.post("/section", ensurePostAuthorized, async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error);
         res.send({
+            error: error,
             code: 400,
             message: "An error occurred"
         });
