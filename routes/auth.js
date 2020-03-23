@@ -72,7 +72,12 @@ router.post("/register", async (req, res) => {
     res.send({
       code: 200,
       message: "user registered successfully",
-      token
+      token,
+      data: {
+        email: new_user.email,
+        firstname: new_user.firstname
+      }
+     
     });
   } catch (error) {
     res.send({
