@@ -65,12 +65,14 @@ router.post("/register", async (req, res) => {
       email,
       password,
     });
+    const token = user.generateAuthToken();
     let salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
     let new_user = await user.save();
     res.send({
       code: 200,
-      message: "user registered successfully,proceed to login now"
+      message: "user registered successfully,proceed to login now",
+      token: token
     });
   } catch (error) {
     res.send({
